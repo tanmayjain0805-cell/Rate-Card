@@ -1050,41 +1050,64 @@ function toggleTC(el) {
   arrow.classList.toggle('open');
 }
 </script>
-<!-- SMART FAQ ASSISTANT -->
+<!-- FLOATING FAQ CHAT BUBBLE -->
+
 <style>
-#faq-bot {
+#chat-toggle {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  width: 330px;
-  height: 440px;
+  background: linear-gradient(135deg,#4f6ef7,#7c3aed);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+  z-index: 99999;
+}
+
+#chat-box {
+  position: fixed;
+  bottom: 95px;
+  right: 20px;
+  width: 340px;
+  height: 450px;
   background: #13131a;
   border: 1px solid #2a2a3d;
-  border-radius: 14px;
-  display: flex;
+  border-radius: 16px;
+  display: none;
   flex-direction: column;
   overflow: hidden;
   font-family: 'DM Sans', sans-serif;
-  z-index: 9999;
+  z-index: 99999;
 }
-#faq-header {
+
+#chat-header {
   background: linear-gradient(135deg,#4f6ef7,#7c3aed);
-  padding: 12px;
+  padding: 14px;
   color: white;
   font-weight: 600;
   font-size: 13px;
 }
-#faq-messages {
+
+#chat-messages {
   flex: 1;
   padding: 12px;
   overflow-y: auto;
   font-size: 12px;
 }
-#faq-input-area {
+
+#chat-input-area {
   display: flex;
   border-top: 1px solid #2a2a3d;
 }
-#faq-input {
+
+#chat-input {
   flex: 1;
   padding: 10px;
   background: #1c1c28;
@@ -1092,60 +1115,69 @@ function toggleTC(el) {
   color: white;
   font-size: 12px;
 }
-#faq-send {
+
+#chat-send {
   background: #4f6ef7;
   border: none;
   color: white;
   padding: 10px 14px;
   cursor: pointer;
 }
-.faq-user { margin-bottom: 8px; }
-.faq-bot { margin-bottom: 12px; color: #10b981; }
+
+.user-msg { margin-bottom: 8px; }
+.bot-msg { margin-bottom: 12px; color: #10b981; }
 </style>
 
-<div id="faq-bot">
-  <div id="faq-header">ER FAQ Assistant</div>
-  <div id="faq-messages"></div>
-  <div id="faq-input-area">
-    <input id="faq-input" placeholder="Ask about MCF, DS, ROI, COD..." />
-    <button id="faq-send">Send</button>
+<div id="chat-toggle">💬</div>
+
+<div id="chat-box">
+  <div id="chat-header">ER FAQ Assistant</div>
+  <div id="chat-messages"></div>
+  <div id="chat-input-area">
+    <input id="chat-input" placeholder="Ask about MCF, DS, ROI, COD..." />
+    <button id="chat-send">Send</button>
   </div>
 </div>
 
 <script>
-const FAQ_DATA = [
-  { keywords:["mcf"], answer:"MCF is centralized fulfillment including inbound, storage and outbound. Suitable for longer DOH and structured inventory." },
-  { keywords:["ds","dark store"], answer:"Dark Store model enables hyperlocal fulfillment with 2hr, SDD and NDD delivery options. Higher infra but faster delivery." },
-  { keywords:["roi"], answer:"ROI delivery uses zone-based pricing: Regional, Metro, Rest of India and NE categories with different slabs." },
-  { keywords:["cod"], answer:"COD is charged either as fixed amount or % of invoice value depending on the model." },
-  { keywords:["rto"], answer:"RTO is charged as a % of forward freight. MCF/DS usually 80%, ROI 90%." },
-  { keywords:["storage","doh"], answer:"Storage cost depends on DOH and CFT logic. Penalty rates apply beyond agreed DOH." },
-  { keywords:["weight","slab"], answer:"Delivery charges increase based on weight slabs (500g or 1kg increments depending on model)." },
-  { keywords:["b2b"], answer:"B2B models include Slotted Delivery and Box-in Box-out with volume-based pricing tiers." },
-  { keywords:["rvp","reverse"], answer:"RVP handles return pickups, QC at hub, and client-managed post-QC material movement." }
+const FAQ = [
+  { keys:["mcf"], answer:"MCF is centralized fulfillment including inbound, storage and outbound. Suitable for longer DOH." },
+  { keys:["ds","dark store"], answer:"Dark Store enables hyperlocal fulfillment with 2hr, SDD and NDD delivery options." },
+  { keys:["roi"], answer:"ROI delivery uses zone-based pricing: Regional, Metro, Rest of India and NE categories." },
+  { keys:["cod"], answer:"COD is charged either as fixed amount or % of invoice value depending on the model." },
+  { keys:["rto"], answer:"RTO is charged as a % of forward freight (usually 80% or 90% depending on model)." },
+  { keys:["storage","doh"], answer:"Storage cost depends on DOH and CFT logic. Penalty rates apply beyond agreed DOH." },
+  { keys:["weight","slab"], answer:"Delivery increases based on weight slabs (500g or 1kg increments depending on model)." },
+  { keys:["b2b"], answer:"B2B includes Slotted Delivery and Box-in Box-out with volume-based pricing tiers." },
+  { keys:["rvp","reverse"], answer:"RVP handles return pickups, QC at hub, and client-managed post-QC material movement." }
 ];
 
-function getAnswer(message){
-  message = message.toLowerCase();
-  for(let item of FAQ_DATA){
-    for(let word of item.keywords){
-      if(message.includes(word)){
+function findAnswer(msg){
+  msg = msg.toLowerCase();
+  for(let item of FAQ){
+    for(let key of item.keys){
+      if(msg.includes(key)){
         return item.answer;
       }
     }
   }
-  return "Please refer to the model-specific T&C in the simulator or contact ER team for detailed commercial clarification.";
+  return "Please refer to the simulator’s Terms & Conditions or contact ER team for detailed clarification.";
 }
 
-document.getElementById("faq-send").onclick = function(){
-  const input = document.getElementById("faq-input");
+document.getElementById("chat-toggle").onclick = function(){
+  const box = document.getElementById("chat-box");
+  box.style.display = box.style.display === "flex" ? "none" : "flex";
+};
+
+document.getElementById("chat-send").onclick = function(){
+  const input = document.getElementById("chat-input");
   const msg = input.value;
   if(!msg) return;
 
-  const container = document.getElementById("faq-messages");
-  container.innerHTML += `<div class="faq-user"><b>You:</b> ${msg}</div>`;
-  const reply = getAnswer(msg);
-  container.innerHTML += `<div class="faq-bot"><b>ER:</b> ${reply}</div>`;
+  const container = document.getElementById("chat-messages");
+  container.innerHTML += `<div class="user-msg"><b>You:</b> ${msg}</div>`;
+  const reply = findAnswer(msg);
+  container.innerHTML += `<div class="bot-msg"><b>ER:</b> ${reply}</div>`;
   input.value="";
   container.scrollTop = container.scrollHeight;
 };
